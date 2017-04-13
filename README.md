@@ -4,9 +4,9 @@ I write this document because I feel frustrated. I have seen too many software d
 
 ### Program to an interface
 
-This principle is the most important because it promotes reusability, ease test-driven development, and allows multiple developers to work together in harmony at the coding level.
+This principle is the most important because it promotes reusability, enables test-driven development, and allows multiple developers to work together in harmony at coding level.
 
-Reusability is in the sense that your code that only depends on interfaces can be resused as is. See the psuedo code below for an example. Method use of class Client can be reused as is, again and again, with any Duck object.
+Reusability is in the sense that code that only depends on interfaces can be resused as is. See psuedo code below for an example. Method use of class Client can be reused as is, again and again, with any Duck object.
 ```
 interface Duck {
    method fly()
@@ -25,9 +25,9 @@ class Client {
 }
 ```
 
-Once you have an interface, you can implement the inteface in any way you want as long as you provide the requried methods. You may have a very simple default implementation for each interface, and wiring all those implementations together will enable you to test your whole software (in particular your implemented algorithms) even before you have actual, specific implementations.
+Once you have an interface, you can implement in in any way you like as long as you provide the required methods. You may have a very simple default implementation of each interface, and wiring all those implementations up together will enable you to test your whole software (in particular all your implemented algorithms) even before you have actual, specific implementations.
 
-If it is a team development, a developer may be assigned to work on a specific implementation of an interface while he or she does not need to know anything beyond what the inteface requires.
+If it is a team development, a developer can easily be assigned to work on a specific implementation of an interface while he or she does not have to know anything beyond what the interface requires.
 
 ### Use Strategy design pattern first
 
