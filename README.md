@@ -79,6 +79,7 @@ A good solution for this type of design problem is Strategy. Copied direcly from
 
 class Fly(abc.ABC):
 
+  @public
   def fly(self):
     pass
 
@@ -100,13 +101,14 @@ class FlySlow(Fly):
 ...
 ```
 
-The next question is how Duck uses Fly. At this stage, it is clear that Duck depends on Fly, and preferrably you establish that dependency at creation time -- thing will be much more complicated when you need to do this at run time, but more on that later. In a fancier term, you do Dependency Injection of Fly to Duck, and preferrably you do it via Duck's constructor. Let's see an example.
+The next question is how Duck uses Fly. At this stage, it is clear that Duck depends on Fly, and preferrably you establish that dependency at creation time -- thing will be a bit more complicated when you need this dependency at run time, but more on that later. In a fancier term, you do Dependency Injection of Fly to Duck, and preferrably you do it via Duck's constructor. Let's see an example.
 
 ```python
 # @file duck.py
 
 class Fly(abc.ABC):
 
+  @public
   def fly(self):
     pass
     
@@ -145,6 +147,15 @@ class Duck(abc.ABC):
   @public
   def display(self):
     pass
+
+class DefaultDuck(Duck):
+  ...
+  
+class MyDuck(Duck):
+  ...
+  
+class YourDuck(Duck):
+  ...
       
 @public
 void create(type):
@@ -159,6 +170,119 @@ void create(type):
 
 Now, I can have common fly() behaviour in class DefaultFly, and that is the default behaviour of all Duck. I can also change this default bahaviour when I create a Duck object. It looks pretty neat. A couple of things to point out are that the only two things public to the outside world are still class Duck and function create() and that the client program does not need to change anything at all.
 
-### Dependency Injection at run time
+### Creation via Abstract Factory (TO REVISE)
 
-TODO
+In the example, I use a function as a public contract for creating a Duck object. It suffices for what is needed, but not flexible enough if we want more. How about allowing the client program to specify the fly strategy of a Duck at creation time? In this case, we need to make Fly accessible (public) to the client program and provide an abstract way to create both Duck and Fly.
+
+```python
+# @file duck.py
+
+@public
+class Fly(abc.ABC):
+
+  @public
+  def fly(self):
+    pass
+
+
+@public
+class DuckFactory(abc.ABC):
+  def create_duck(self, *args, **kwargs):
+    pass
+  def create_fly(self, *args, **kwargs):
+    pass
+    
+class DefaultDuckFactory(DuckFactory):
+  def create_duck(self, *args, **kwargs):
+    # return a Duck with Fly strategy object based on passed in args and kwargs
+  def create_fly(self, *args, **kwargs):
+    # return a Fly object based on passed in args and kwargs
+
+factory = DefaultDuckFactory()
+```
+
+In the code, I provide public interface DuckFactory and a publicly availble default factory (global variable factory). Note that class DefaultDuckFactory is not public becuase it does not have to be.
+
+### Dependency Injection at run time (TO REVISE)
+
+Sometimes, requirements require behaviour changes at run time. For instance, the client program needs to change the fly strategy of a duck. The easiest way to do this is to introduce a contract (method) to do this in the interface (Duck).
+
+However, in reality, you may not be able to do it due to various reasons e.g. you do not have write access to Duck, you want a (perhaps) better seperation of concerns, etc. I have two ways of handling this case. The first way is Mixin.
+
+```python
+# @file duck.py
+
+@public
+class FlyMixin(abc.ABC):
+  @public
+  def set_fly(self, fly):
+    self._fly_strategy = fly
+
+@public
+class Duck(abc.ABC):
+  def __init__(self, fly_strategy=None):
+    self._fly_strategy = fly_strategy or DefaultFly()
+
+  @public
+  def fly(self):
+    self._fly_strategy.fly()
+    
+  @public
+  def quack(self):
+    pass
+    
+  @public
+  def swim(self):
+    pass
+    
+  @public
+  def display(self):
+    pass
+
+class DefaultDuck(FlyMixin, Duck):
+  def __init__(self, fly_strategy=None):
+    super(DefaultDuck, self).__init__(fly_strategy=fly_strategy)
+```
+
+Class DefaultDuck now has an ability to set fly strategy, and no change to factory classes is required. Using Mixin is not possible for a language that does not allow multiple inheritance e.g. Java, and here comes the second way, interface extension.
+
+```python
+# @file duck.py
+
+@public
+class Duck(abc.ABC):
+  def __init__(self, fly_strategy=None):
+    self._fly_strategy = fly_strategy or DefaultFly()
+
+  @public
+  def fly(self):
+    self._fly_strategy.fly()
+    
+  @public
+  def quack(self):
+    pass
+    
+  @public
+  def swim(self):
+    pass
+    
+  @public
+  def display(self):
+    pass
+
+@public
+class EvolvedDuck(Duck):
+  @public
+  def set_fly(self, fly):
+    self._fly_strategy = fly
+
+class DefaultDuck(EvolvedDuck):
+  def __init__(self, fly_strategy=None):
+    super(DefaultDuck, self).__init__(fly_strategy=fly_strategy)
+```
+
+In this case, you may have to come up with a sensible name for the extending interface. For strongly typed language like Java, the client program has to convert Duck and EvolvedDuck in order to call method set_fly(), but it is not a problem with Python.
+
+### Embrace language features (TO REVISE)
+
+Programming languages have advanced significantly, and the trend is towards allowing programmers to be able to write less and less boilerplate code and focus more and more on ways to solve their programming problems. Embrace features of your used language. Do not stick to old ways just because you know they work. Once you are able to produce programming solutions through your fingertips instantly without even knowing where they come from, then you can silently call yourself a master!
